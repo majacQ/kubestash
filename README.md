@@ -2,6 +2,8 @@
 
 Push Credstash secrets to Kubernetes.
 
+https://hub.docker.com/r/afinet/kubestash/
+
 ## installing
 
 ```
@@ -29,6 +31,8 @@ optional arguments:
   -f, --force           replace a secret if it already exists
   -n NAMESPACE, --namespace NAMESPACE
                         kubernetes namespace
+  -U, --uppercase       For lowercase keys in credstash, convert them
+                        to UPPER_CASE environment variables
   -l, --lowercase       For SECRET keys, lowercase and convert "_" to "-"
                         (DNS_SUBDOMAIN). Useful for compatibility with older
                         Kubernetes versions. (deprecated).
@@ -39,9 +43,9 @@ optional arguments:
 
 ```
 
-## adding envs to your deployment manifest
+## adding envs to your deployment
 
-add this to your container manifest to import your secret as environment variables
+add this to your container
 
 ```yaml
 envFrom:
@@ -63,10 +67,15 @@ If the above is true for you, `kubestash` can help!
 
 Just run:
 
-`kubestash push TABLE SECRET`
+`kubestash push -v TABLE SECRET`
 
 and you'll have a Kubernetes SECRET which maps 1:1 with your Credstash TABLE.
 
+`kubestash daemon -v TABLE SECRET` will monitor DynamoDB for updates
+(using [DynamoDB Streams](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html)),
+and automatically trigger a push command when necessary.
+
+This is useful if you don't want to manually run the `push` command every time you update credstash.
 
 ## secret key constraints
 
@@ -76,15 +85,13 @@ Environment variable names must consist solely of uppercase letters, digits, and
 
 So when you run `credstash -t=table put KEY VALUE`, you should take care that KEY meets these constraints.
 
-In older versions of Kubernetes, secret keys had to conform to DNS_SUBDOMAIN. [3]
+In older versions of Kubernetes, secret keys had to conform to DNS_SUBDOMAIN.
 
 For this purpose, the `-l --lowercase` flag is present to help you convert your keys if necessary.
 
 [1] https://kubernetes.io/docs/concepts/configuration/secret/
 
 [2] http://pubs.opengroup.org/onlinepubs/000095399/basedefs/xbd_chap08.html
-
-[3] https://github.com/kubernetes/community/blob/master/contributors/design-proposals/identifiers.md
 
 
 ## known issues
