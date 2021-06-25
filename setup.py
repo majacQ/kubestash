@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+!/usr/bin/env python
 from setuptools import find_packages
 from setuptools import setup
 setup(
@@ -10,7 +10,11 @@ setup(
     'credstash',
     'urllib3',
   ],
+  <<<<<<< fix-kubernetes-context
   version='1.0.0',
+  =======
+  version='2.0.2',
+  >>>>>>> envfrom
   description='Push your Credstash secrets to Kubernetes.',
   author='David Hargat',
   author_email='davidmhargat@gmail.com',
