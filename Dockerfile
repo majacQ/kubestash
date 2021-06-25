@@ -1,3 +1,8 @@
+  <<<<<<< fix-kubernetes-context
+FROM jfloff/alpine-python:2.7
+RUN apk update && apk add libffi-dev openssl-dev
+RUN pip install kubestash
+  =======
 FROM python:2.7-alpine3.7
 # See https://github.com/pyca/cryptography/blob/master/docs/installation.rst#alpine
 RUN apk add --no-cache \
@@ -16,3 +21,4 @@ COPY ./requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
 COPY . /app
 RUN python setup.py install
+  >>>>>>> envfrom

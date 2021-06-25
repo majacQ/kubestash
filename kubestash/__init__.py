@@ -9,7 +9,10 @@ import kubernetes
 import credstash
 import boto3
 import copy
+  <<<<<<< fix-kubernetes-context
+  =======
 import traceback
+  >>>>>>> envfrom
 from collections import namedtuple
 
 
@@ -19,7 +22,7 @@ from collections import namedtuple
 
 def base_parser():
     """ Parses arguments shared by every subcommand. """
-    parser = argparse.ArgumentParser(add_help=False)
+    parser = argparse.ArgumentParser(add_help=True)
     parser.add_argument('-p', '--proxy',
                         action='store',
                         type=str,
@@ -140,6 +143,110 @@ def add_parser_daemon(parent):
                         type=str,
                         default=None,
                         help='kubernetes context (ignored if proxy is set)')
+  <<<<<<< fix-kubernetes-context
+    parser.add_argument('-r', '--region',
+                        dest='region',
+                        action='store',
+                        type=str,
+                        default=None,
+                        help='aws region')
+    return parser
+
+
+def add_parser_pushall(parent):
+    """ Parses arguments for the pushall command. """
+    parser = parent.add_parser('pushall',
+                               parents=[base_parser()],
+                               help='push values from a Credstash table to a Kubernetes cluster')
+    parser.add_argument('table',
+                        action='store',
+                        type=str,
+                        help='Credstash table you want to pull values from')
+
+    parser.add_argument('--secretname',
+                        action='store',
+                        type=str,
+                        help='ENV_NAME you want to sync (requires --secret and --namespace)')
+
+    parser.add_argument('--secret',
+                        action='store',
+                        type=str,
+                        help='Kubernetes secret you want to push values in')
+    parser.add_argument('-c', '--context',
+                        dest='context',
+                        action='store',
+                        type=str,
+                        default=None,
+                        help='kubernetes context (ignored if proxy is set)')
+  =======
+  >>>>>>> envfrom
+    parser.add_argument('-r', '--region',
+                        dest='region',
+                        action='store',
+                        type=str,
+                        default=None,
+                        help='aws region')
+    parser.add_argument('-i', '--interval',
+                        dest='interval',
+                        action='store',
+                        type=int,
+                        default=10,
+                        help='how long to sleep between shard iterations (seconds)')
+    return parser
+
+
+def add_parser_daemonall(parent):
+    """ Parses arguments for the daemon command. """
+    parser = parent.add_parser('daemonall',
+                               parents=[base_parser()],
+                               help='daemon mode; automatically syncs your credstash table with your entire cluster. Requires DynamoDB Streams to be enabled for your table. '
+                                    'Implies -f --force.')
+    parser.add_argument('table',
+                        action='store',
+                        type=str,
+                        help='Credstash table you want to pull values from')
+    parser.add_argument('-c', '--context',
+                        dest='context',
+                        action='store',
+                        type=str,
+                        default=None,
+                        help='kubernetes context (ignored if proxy is set)')
+    parser.add_argument('-r', '--region',
+                        dest='region',
+                        action='store',
+                        type=str,
+                        default=None,
+                        help='aws region')
+    parser.add_argument('-i', '--interval',
+                        dest='interval',
+                        action='store',
+                        type=int,
+                        default=10,
+                        help='how long to sleep between shard iterations (seconds)')
+    return parser
+
+
+def add_parser_daemon(parent):
+    """ Parses arguments for the daemon command. """
+    parser = parent.add_parser('daemon',
+                               parents=[base_parser()],
+                               help='daemon mode; automatically runs a `kubestash push` whenever changes are '
+                                    'detected in DynamoDB. Requires DynamoDB Streams to be enabled for your table. '
+                                    'Implies -f --force.')
+    parser.add_argument('table',
+                        action='store',
+                        type=str,
+                        help='Credstash table you want to pull values from')
+    parser.add_argument('secret',
+                        action='store',
+                        type=str,
+                        help='Kubernetes secret you want to push values in')
+    parser.add_argument('-c', '--context',
+                        dest='context',
+                        action='store',
+                        type=str,
+                        default=None,
+                        help='kubernetes context (ignored if proxy is set)')
     parser.add_argument('-r', '--region',
                         dest='region',
                         action='store',
@@ -188,7 +295,7 @@ def add_parser_daemonall(parent):
 
 def parse_args():
     """ Parses command line arguments. """
-    # https://docs.python.org/3/library/argparse.html
+    #https://docs.python.org/3/library/argparse.html
     help_text = 'push a Credstash table to a Kubernetes secret'
 
     parser = argparse.ArgumentParser(description=help_text)
@@ -208,7 +315,7 @@ def parse_args():
 
 def credstash_getall(args):
     """ Returns an object containing all your Credstash secrets from `args.table`. """
-    # https://github.com/fugue/credstash/blob/master/credstash.py#L297
+    https://github.com/fugue/credstash/blob/master/credstash.py#L297
     if args.verbose:
         print('fetching your secrets from "{table}" '
               '(Credstash is slow, this may take a few minutes...)'.format(table=args.table))
@@ -276,8 +383,8 @@ def kube_init_secret(args, name, data):
     (possibly non-string) data value here.
     [1] https://github.com/kubernetes-incubator/client-python/blob/master/kubernetes/docs/V1Secret.md
     """
-    # https://github.com/kubernetes-incubator/client-python/blob/master/kubernetes/docs/V1Secret.md
-    # api_version, data, kind, metadata, string_data, type
+    https://github.com/kubernetes-incubator/client-python/blob/master/kubernetes/docs/V1Secret.md
+    api_version, data, kind, metadata, string_data, type
     converted_data = {
         generate_key(args, key): base64.b64encode(data[key].encode('utf-8')).decode('utf-8')
         for key in data
@@ -288,7 +395,7 @@ def kube_init_secret(args, name, data):
 
 def kube_create_secret(args, namespace, secret, data):
     """ Creates a Kubernetes secret. Returns the api response from Kubernetes."""
-    # https://github.com/kubernetes-incubator/client-python/blob/master/kubernetes/docs/CoreV1Api.md#create_namespaced_secret
+    https://github.com/kubernetes-incubator/client-python/blob/master/kubernetes/docs/CoreV1Api.md#create_namespaced_secret
     kube = kubernetes.client.CoreV1Api()
     body = kube_init_secret(args, secret, data)
     return kube.create_namespaced_secret(namespace, body)
@@ -296,7 +403,7 @@ def kube_create_secret(args, namespace, secret, data):
 
 def kube_replace_secret(args, namespace, secret, data):
     """ Replaces a kubernetes secret. Returns the api response from Kubernetes. """
-    # https://github.com/kubernetes-incubator/client-python/blob/master/kubernetes/docs/CoreV1Api.md#replace_namespaced_secret
+    https://github.com/kubernetes-incubator/client-python/blob/master/kubernetes/docs/CoreV1Api.md#replace_namespaced_secret
     kube = kubernetes.client.CoreV1Api()
     body = kube_init_secret(args, secret, data)
     return kube.replace_namespaced_secret(secret, namespace, body)
@@ -311,43 +418,51 @@ def kube_secret_exists(namespace, secret):
         kube.read_namespaced_secret(secret, namespace)
     except kubernetes.client.rest.ApiException as e:
         if e.status == 404:
-            return False  # 404 means the secret did not exist, so we can return False
+            return False  404 means the secret did not exist, so we can return False
         else:
-            raise  # don't catch errors you can't resolve.
+            raise  don't catch errors you can't resolve.
     return True
 
 
 def kube_namespace_exists(args):
     """ Returns True or False if a Kubernetes namespace exists or not respectively. """
-    # https://github.com/kubernetes-incubator/client-python/blob/master/kubernetes/docs/CoreV1Api.md#read_namespaced_secret
+    https://github.com/kubernetes-incubator/client-python/blob/master/kubernetes/docs/CoreV1Api.md#read_namespaced_secret
     kube = kubernetes.client.CoreV1Api()
     try:
         # TODO: might be better to call list_namespaced_secrets here.
         kube.read_namespace(args.namespace)
     except kubernetes.client.rest.ApiException as e:
         if e.status == 404:
-            return False  # 404 means the secret did not exist, so we can return False
+            return False  404 means the secret did not exist, so we can return False
         else:
-            raise  # don't catch errors you can't resolve.
+            raise  don't catch errors you can't resolve.
     return True
 
 
 def kube_read_secret(args):
     """ Returns the full contents of a Kubernetes secret. """
-    kube = kubernetes.client.CoreV1Api()
+    kube =  kubernetes.client.CoreV1Api()
     return kube.read_namespaced_secret(args.secret, args.namespace)
 
 
 def kube_read_deployment(args):
     """ Returns the full contents of Kubernetes deployment. """
+  <<<<<<< fix-kubernetes-context
+    kube =  kubernetes.client.CoreV1Api()
+  =======
     kube = kubernetes.client.CoreV1Api()
+  >>>>>>> envfrom
     response = kube.read_namespaced_deployment(args.deployment, args.namespace)
     return response
 
 
 def kube_patch_deployment(args, deployment):
     """ Patches a Kubernetes deployment with data `deployment`. Returns the full contents of the patched deployment. """
+  <<<<<<< fix-kubernetes-context
+    kube =  kubernetes.client.CoreV1Api()
+  =======
     kube = kubernetes.client.CoreV1Api()
+  >>>>>>> envfrom
     return kube.patch_namespaced_deployment(args.deployment, args.namespace, deployment)
 
 
@@ -382,7 +497,7 @@ def init_envs_for_container(args, secrets, container):
             key)
         for key in secrets
     ]
-    if args.update_only:
+    # if args.update_only
         # compile a list of environment variable names in the container -
         # so we can easily check which envs are present
         container_env_names = [
@@ -398,6 +513,43 @@ def init_envs_for_container(args, secrets, container):
     return envs
 
 
+  <<<<<<< fix-kubernetes-context
+def cmd_inject(args):
+    """
+    Pulls values from a Kubernetes secret and injects them into a deployment as environment variables.
+    There may be multiple containers in a single deployment, so we inject into all of them.
+    """
+    # read the original deployment file
+    deployment = kube_read_deployment(args)
+    # read the secrets
+    secrets = kube_read_secret(args).data
+    # TODO: implement a diff here so we can inform the use if they actually changed anything.
+    # TODO: this is a bit too complex, find a way to simplify
+    data = {
+        'spec': {
+            'template': {
+                'spec': {
+                    'containers': [
+                        {
+                            'name': container.name,
+                            'env': init_envs_for_container(args, secrets, container)
+                        }
+                        for container in deployment.spec.template.spec.containers
+                        # if no --container is passed in, we inject in every container
+                        if (container.name in args.container) or (len(args.container) == 0)
+                    ]
+                }
+            }
+        }
+    }
+    kube_patch_deployment(args, data)
+    print('inject is DEPRECATED; see README.md, use envFrom instead)\n\n'
+          'Injected environment variables into deployment: "{deployment}" '
+          'from secret: "{secret}"'.format(deployment=args.deployment, secret=args.secret))
+
+
+  =======
+  >>>>>>> envfrom
 def cmd_push(args):
     """ Pulls values from a Credstash table and stores them in a Kubernetes secret. """
 
@@ -415,7 +567,11 @@ def cmd_push(args):
                                                                                                   table=args.table))
     else:
         data = credstash_getall(args)
+  <<<<<<< fix-kubernetes-context
+        kube_create_secret(args, data)
+  =======
         kube_create_secret(args, args.namespace, args.secret, data)
+  >>>>>>> envfrom
         print('created Kubernetes Secret: "{secret}" with Credstash table: "{table}"'.format(table=args.table,
                                                                                              secret=args.secret))
 
@@ -479,6 +635,18 @@ def cmd_pushall(args):
 
         # Iterate through the secrets and make sure they exist
         for secret in secretMap[ns]:
+  <<<<<<< fix-kubernetes-context
+            prefix = ns + "/" + secret + "/"
+            data = filter_secrets(secrets, ns, secret)
+            if kube_secret_exists(ns, secret):
+                if args.verbose:
+                    print("Force pushing secret to kubernetes: ns={ns}, secret={secret}".format(ns=ns, secret=secret))
+                kube_replace_secret(args, ns, secret, data)
+            else:
+                if args.verbose:
+                    print("Creating and pushing secret to kubernetes: ns={ns}, secret={secret}".format(ns=ns, secret=secret))
+                kube_create_secret(args, ns, secret, data)
+  =======
             try:
                 prefix = ns + "/" + secret + "/"
                 data = filter_secrets(secrets, ns, secret)
@@ -495,6 +663,7 @@ def cmd_pushall(args):
                     traceback.print_exc()
                 else:
                     pass
+  >>>>>>> envfrom
     if args.verbose:
         print("All secrets synced")
 
@@ -505,6 +674,36 @@ def filter_secrets(secrets, ns, secret):
 
     return {k.split('/')[2]: secrets[k] for k in secrets if k.startswith(prefix)}
 
+  <<<<<<< fix-kubernetes-context
+
+def get_stream_client(args):
+    client = boto3.client('dynamodbstreams')
+
+    response = client.list_streams(TableName=args.table, Limit=100)
+
+    if not response['Streams']:
+        print("fatal: no stream found for DynamoDB Table '{table}'.\n"
+              "ensure streams are enabled for your table:\n"
+              "\thttps://console.aws.amazon.com/dynamodb/home\n"
+              .format(table=args.table))
+        sys.exit(1)
+
+    # take the first stream we find... not sure if there are any caveats in doing this.
+    arn = response['Streams'][0]['StreamArn']
+
+    if args.verbose:
+        print("using DynamoDB Stream ARN: {arn}".format(arn=arn))
+
+    response = client.describe_stream(StreamArn=arn, Limit=100)
+
+    if not response['StreamDescription']['Shards']:
+        print("fatal: no shards found for DynamoDB stream '{arn}'.".format(arn=arn))
+        sys.exit(1)
+
+    shard_id = response['StreamDescription']['Shards'][0]['ShardId']
+
+    if args.verbose:
+  =======
 
 def get_stream_client(args):
     client = boto3.client('dynamodbstreams', region_name=args.region)
@@ -533,6 +732,7 @@ def get_stream_client(args):
     shard_id = response['StreamDescription']['Shards'][0]['ShardId']
 
     if args.verbose:
+  >>>>>>> envfrom
         print("using DynamoDB Stream shard id: {shard_id}".format(shard_id=shard_id))
 
     response = client.get_shard_iterator(StreamArn=arn, ShardId=shard_id, ShardIteratorType='LATEST')
@@ -543,11 +743,11 @@ def get_stream_client(args):
 
 
 def cmd_daemon(args):
-    # https://boto3.readthedocs.io/en/latest/reference/services/dynamodb.html
-    # https://boto3.readthedocs.io/en/latest/reference/services/dynamodbstreams.html
+    https://boto3.readthedocs.io/en/latest/reference/services/dynamodb.html
+    https://boto3.readthedocs.io/en/latest/reference/services/dynamodbstreams.html
     # TODO: what if there are more than 100 streams?
 
-    # -f --force is implied by daemon
+    -f --force is implied by daemon
     args.force = True
 
     client, shard_iterator = get_stream_client(args)
@@ -611,21 +811,34 @@ def cmd_daemonall(args):
 def main():
     args = parse_args()
 
+  <<<<<<< fix-kubernetes-context
+    print a useful error message if the user supplies an invalid context
+    contexts, _ = kubernetes.config.list_kube_config_contexts()
+    context_names = [c['name'] for c in contexts]
+    if args.context and args.context not in context_names:
+        print("Kubernetes context '{context}' not found, must be one of: {context_list}"
+              .format(context=args.context,
+                      context_list=', '.join(context_names)))
+        sys.exit(1)
+
+    kubernetes.config.load_kube_config(context=args.context)
+  =======
     try:
         kubernetes.config.load_kube_config(context=args.context)
         contexts, _ = kubernetes.config.list_kube_config_contexts()
         context_names = [c['name'] for c in contexts]
-        # print a useful error message if the user supplies an invalid context
+        print a useful error message if the user supplies an invalid context
         if args.context and args.context not in context_names:
             print("Kubernetes context '{context}' not found, must be one of: {context_list}"
                   .format(context=args.context,
                           context_list=', '.join(context_names)))
             sys.exit(1)
     except (ValueError, IOError):
-        # if the KUBECONFIG is missing or invalid, fall back to incluster config
+       if the KUBECONFIG is missing or invalid, fall back to incluster config
         kubernetes.config.load_incluster_config()
+  >>>>>>> envfrom
 
-    # if we're in proxy mode, disable ssl verification
+    if we're in proxy mode, disable ssl verification
     if args.proxy and (len(args.proxy) == 1):
         kubernetes.client.configuration.host = args.proxy[0]
         kubernetes.client.configuration.verify_ssl = False
@@ -635,6 +848,11 @@ def main():
             cmd_push(args)
         elif args.cmd == 'pushall':
             cmd_pushall(args)
+  <<<<<<< fix-kubernetes-context
+        elif args.cmd == 'inject':
+            cmd_inject(args)
+  =======
+  >>>>>>> envfrom
         elif args.cmd == 'daemon':
             cmd_daemon(args)
         elif args.cmd == 'daemonall':
@@ -646,7 +864,7 @@ def main():
             # This will be a very common error since the python that ships with macOS
             # seems to be stuck on openssl v0.9.8, so lets show the users how to fix it.
             # Kubernetes seems to be aware of this issue:
-            # https://github.com/kubernetes-incubator/client-python#sslerror-on-macos
+            https://github.com/kubernetes-incubator/client-python#sslerror-on-macos
             #
             print(('\nSSLError: run with --trace to see the original exception which caused this error.\n\n'
                    'This version of python is compiled with "{ssl_version}" - '
